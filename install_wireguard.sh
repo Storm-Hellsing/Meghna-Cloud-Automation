@@ -21,9 +21,9 @@ else
             2. Client Configuration
                                     "
 
-    read -p "Enter Your Choise [1 or 2]: " choice
+    read -p "Enter Your Choise [1 or 2]: " CHOICE
 
-    case $choice in
+    case $CHOICE in
         1)
             echo ""
             echo "----------------------"
@@ -46,6 +46,20 @@ else
                 echo "-----------------------------------"
 
             fi
+
+            cd /etc/wireguard/
+            umask 077
+            wg genkey > privatekey
+            wg pubkey < privatekey > publickey
+
+            PRIVATE_KEY=$(<privatekey)
+            PUBLIC_KEY=$(<publickey)
+            
+            read -p "Enter Network Interface Address: " NET_INT_ADDR
+            read -p "Enter Listening Port of the Server: " LISTEN_PORT
+            
+
+
 
         ;;
     
