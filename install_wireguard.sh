@@ -97,11 +97,39 @@ EOF
                 DNS_GOOGLE="8.8.8.8, 8.8.4.4"
                 DNS_CLOUDFLARE="1.1.1.1"
                 
-                read -p "Enter Network Interface Address [default: 10.10.10.1]: " NET_INT_ADDR
-                NET_INT_ADDR=${NET_INT_ADDR:-10.10.10.1}
+                while true; do
 
-                read -p "Enter Listening Port of the Server [default: 51820]: " LISTEN_PORT
-                LISTEN_PORT=${LISTEN_PORT:-51820}
+                    read -p "Enter Network Interface Address [default: 10.10.10.1]: " NET_INT_ADDR
+                    NET_INT_ADDR=${NET_INT_ADDR:-10.10.10.1}
+
+                    if [[ $NET_INT_ADDR =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+
+                        break
+
+                    else
+
+                        echo "Invalid IP address format. Please try again."
+
+                    fi
+
+                done
+
+                while true; do
+
+                    read -p "Enter Listening Port of the Server [default: 51820]: " LISTEN_PORT
+                    LISTEN_PORT=${LISTEN_PORT:-51820}
+
+                    if [[ $LISTEN_PORT =~ ^[0-9]+$ ]] && [ $LISTEN_PORT -ge 1 ] && [ $LISTEN_PORT -le 65535 ]; then
+
+                        break
+
+                    else
+
+                        echo "Invalid port number. Please enter a number between 1 and 65535."
+
+                    fi
+
+                done
 
                 echo "Select DNS Server:
                             
@@ -141,13 +169,14 @@ EOF
 
                     echo "wg0.conf has been created with the specified configurations. Server Configuration is now Successfully Complete."
 
-                    echo "----------------------------------------"
+                    echo "----------------------------------------------------------------"
                     echo "Server Configuration Details"
+                    echo "----------------------------------------------------------------"
                     echo "PrivateKey = $PRIVATE_KEY"
                     echo "Network Interface Address: $NET_INT_ADDR"
                     echo "Listening Port: $LISTEN_PORT"
                     echo "DNS Server: $DNS_SERVER"
-                    echo "----------------------------------------"
+                    echo "----------------------------------------------------------------"
                 
             fi
 
