@@ -82,7 +82,7 @@ EOF
 
             cd /etc/wireguard/
 
-            if [ -f wg0.conf ]; then
+            if [ -f /etc/wireguard/wg0.conf ]; then
 
                 echo "Warning: wg0.conf already exists. Please inspect it before proceeding."
 
@@ -94,21 +94,20 @@ EOF
 
                 PRIVATE_KEY=$(<privatekey)
                 PUBLIC_KEY=$(<publickey)
-                DNS_GOOGLE="8.8.8.8, 8.8.4.4"
-                DNS_CLOUDFLARE="1.1.1.1"
+                DNS_SERVER="8.8.8.8, 8.8.4.4, 1.1.1.1"
                 
                 while true; do
 
-                    read -p "Enter Network Interface Address [default: 10.10.10.1]: " NET_INT_ADDR
-                    NET_INT_ADDR=${NET_INT_ADDR:-10.10.10.1}
+                    read -p "Enter Network Interface Address with Subnet [default: 10.10.10.1/24]: " NET_INT_ADDR
+                    NET_INT_ADDR=${NET_INT_ADDR:-10.10.10.1/24}
 
-                    if [[ $NET_INT_ADDR =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+                    if [[ $NET_INT_ADDR =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([1-9]|[12][0-9]|3[0-2])$ ]]; then
 
                         break
 
                     else
 
-                        echo "Invalid IP address format. Please try again."
+                        echo "Invalid IP address or subnet format. Please try again."
 
                     fi
 
@@ -130,26 +129,6 @@ EOF
                     fi
 
                 done
-
-                echo "Select DNS Server:
-                            
-                            1. Google DNS Server
-                            2. Cloudflare DNS Server" 
-                            
-                read -p "Enter Your Choice [1 or 2]: " DNS_CHOICE
-
-                case $DNS_CHOICE in
-                    1)
-                        DNS_SERVER=$DNS_GOOGLE
-                        ;;
-                    2)
-                        DNS_SERVER=$DNS_CLOUDFLARE
-                        ;;
-                    *)
-                        echo "Invalid choice, defaulting to Google DNS Server."
-                        DNS_SERVER=$DNS_GOOGLE
-                        ;;
-                esac
 
                 # Automatically detect the network interface
                 INTERFACE=$(ip -o -4 route show to default | awk '{print $5}')
@@ -173,14 +152,159 @@ EOF
                     echo "Server Configuration Details"
                     echo "----------------------------------------------------------------"
                     echo "PrivateKey = $PRIVATE_KEY"
-                    echo "Network Interface Address: $NET_INT_ADDR"
-                    echo "Listening Port: $LISTEN_PORT"
-                    echo "DNS Server: $DNS_SERVER"
+                    echo "Address = $NET_INT_ADDR"
+                    echo "Listening Port = $LISTEN_PORT"
+                    echo "DNS Server = $DNS_SERVER"
                     echo "----------------------------------------------------------------"
                 
             fi
 
         ;;
     
+    2)
+
+        echo ""
+        echo "----------------------"
+        echo "Client Configurations"
+        echo "----------------------"
+        echo ""
+
+        if [ ! -d /etc/wireguard/clients ]; then
+
+            mkdir /etc/wireguard/clients
+
+            if [ -f /etc/wireguard/wg0.conf ]; then
+
+                while true; do
+
+                read -p "Enter the number of users to create [1-100]: " NUM_USERS
+
+                if [[ $NUM_USERS =~ ^[0-9]+$ ]] && [ $NUM_USERS -ge 1 ] && [ $NUM_USERS -le 100 ]; then
+
+                    break
+
+                else
+
+                    echo "Invalid number of users. Please enter a number between 1 and 100."
+
+                fi
+
+                done
+
+                SERVER_NET_INT_ADDR=$(grep "^Address" wg0.conf | cut -d' ' -f3)
+                SERVER_IP=$(echo $SERVER_NET_INT_ADDR | cut -d'/' -f1)
+                SERVER_SUBNET=$(echo $SERVER_NET_INT_ADDR | cut -d'/' -f2)
+
+                IFS='.' read -r -a IP_ARRAY <<< "$SERVER_IP"
+                BASE_IP="${IP_ARRAY[0]}.${IP_ARRAY[1]}.${IP_ARRAY[2]}"
+
+                cd /etc/wireguard/clients
+
+                for ((i=1; i<=NUM_USERS; i++)); do
+
+                    umask 077
+                    wg genkey > client_privatekey_$i
+                    wg pubkey < client_privatekey_$i > client_publickey_$i
+                    wg genpsk > client_presharedkey_$i
+
+                    CLIENT_PRIVATE_KEY=$(<client_privatekey_$i)
+                    CLIENT_PUBLIC_KEY=$(<client_publickey_$i)
+                    CLIENT_PRESHARED_KEY=$(<client_presharedkey_$i)
+
+                    CLIENT_IP="${BASE_IP}.$((i+1))/$SERVER_SUBNET"
+
+                    cat << EOF > client_$i.conf
+[Interface]
+PrivateKey = $CLIENT_PRIVATE_KEY
+Address = $CLIENT_IP
+DNS = $DNS_SERVER
+
+[Peer]
+PublicKey = $PUBLIC_KEY
+PresharedKey = $CLIENT_PRESHARED_KEY
+Endpoint = <server-ip>:51820
+AllowedIPs = 0.0.0.0/0
+EOF
+
+                    echo "Client configuration file client_$i.conf has been created."
+
+                done
+        
+            else
+
+            echo "Server Configuration File is not Found. Please check, if the server configuration file is named different other than wg0.conf or create server configuration file first."
+
+            fi
+            
+        elif [ -d /etc/wireguard/clients ]; then
+
+            if [ -f /etc/wireguard/wg0.conf ]; then
+
+                while true; do
+
+                read -p "Enter the number of users to create [1-100]: " NUM_USERS
+
+                if [[ $NUM_USERS =~ ^[0-9]+$ ]] && [ $NUM_USERS -ge 1 ] && [ $NUM_USERS -le 100 ]; then
+
+                    break
+
+                else
+
+                    echo "Invalid number of users. Please enter a number between 1 and 100."
+
+                fi
+
+                done
+
+                SERVER_NET_INT_ADDR=$(grep "^Address" wg0.conf | cut -d' ' -f3)
+                SERVER_IP=$(echo $SERVER_NET_INT_ADDR | cut -d'/' -f1)
+                SERVER_SUBNET=$(echo $SERVER_NET_INT_ADDR | cut -d'/' -f2)
+
+                IFS='.' read -r -a IP_ARRAY <<< "$SERVER_IP"
+                BASE_IP="${IP_ARRAY[0]}.${IP_ARRAY[1]}.${IP_ARRAY[2]}"
+
+                cd /etc/wireguard/clients
+
+                for ((i=1; i<=NUM_USERS; i++)); do
+
+                    umask 077
+                    wg genkey > client_privatekey_$i
+                    wg pubkey < client_privatekey_$i > client_publickey_$i
+                    wg genpsk > client_presharedkey_$i
+
+                    CLIENT_PRIVATE_KEY=$(<client_privatekey_$i)
+                    CLIENT_PUBLIC_KEY=$(<client_publickey_$i)
+                    CLIENT_PRESHARED_KEY=$(<client_presharedkey_$i)
+
+                    CLIENT_IP="${BASE_IP}.$((i+1))/$SERVER_SUBNET"
+
+                    cat << EOF > client_$i.conf
+[Interface]
+PrivateKey = $CLIENT_PRIVATE_KEY
+Address = $CLIENT_IP
+DNS = $DNS_SERVER
+
+[Peer]
+PublicKey = $PUBLIC_KEY
+PresharedKey = $CLIENT_PRESHARED_KEY
+Endpoint = <server-ip>:51820
+AllowedIPs = 0.0.0.0/0
+EOF
+
+                    echo "Client configuration file client_$i.conf has been created."
+
+                done
+        
+            else
+
+            echo "Server Configuration File is not Found. Please check, if the server configuration file is named different other than wg0.conf or create server configuration file first."
+
+            fi
+        fi
+
+
+    ;;
+
+      
     esac
 fi
