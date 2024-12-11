@@ -150,9 +150,9 @@ ListenPort = $LISTEN_PORT
 PrivateKey = $PRIVATE_KEY
 DNS = $DNS_SERVER
 
-PostUp = iptables -A FORWARD -i telecash-vpn -o $INTERFACE -j ACCEPT
+PostUp = iptables -A FORWARD -i wg0 -o $INTERFACE -j ACCEPT
 PostUp = iptables -t nat -A POSTROUTING -o $INTERFACE -j MASQUERADE
-PreDown = iptables -D FORWARD -i telecash-vpn -o $INTERFACE -j ACCEPT
+PreDown = iptables -D FORWARD -i wg0 -o $INTERFACE -j ACCEPT
 PreDown = iptables -t nat -D POSTROUTING -o $INTERFACE -j MASQUERADE
 EOF
 
