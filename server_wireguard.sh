@@ -21,6 +21,24 @@ else
     echo "Server Configurations"
     echo "----------------------"
     echo ""
+    echo "Installing Depedencies.../"
+    echo ""
+
+    if dpkg -l | grep -q "resolvconf" || dpkg -l | grep -q "systemd-resolved"; then
+
+        echo "-------------------------------"
+        echo "ResolvConf is already installed."         
+        echo "-------------------------------"
+                
+    elif sudo apt install resolvconf -y; then
+
+        echo "-----------------------------------"
+        echo "ResolvConf is successfully installed"
+        echo "-----------------------------------"
+
+    fi
+
+    echo ""
     echo "Installing WireGuard.../"
     echo ""
 
@@ -150,6 +168,28 @@ EOF
         echo "Listening Port = $LISTEN_PORT"
         echo "DNS Server = $DNS_SERVER"
         echo "----------------------------------------------------------------"
+
+        echo "Enabling Wireguard Services..."
+        
+        if systemctl enable wg-quick@wg0; then
+
+            echo "Wireguard Services Enabled Successfully"
+
+            if systemctl start wg-quick@wg0; then
+
+            echo "Wireguard Server Started Successfully"
+
+        else
+
+            echo "Failed to Start the Server. Check Status."
+
+        fi
+
+        else
+
+            echo "Failed to Enable the Services. Check Status."
+
+        fi
                 
     fi
 fi
