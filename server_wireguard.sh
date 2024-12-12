@@ -141,7 +141,7 @@ EOF
         # Automatically detect the network interface
         INTERFACE=$(ip -o -4 route show to default | awk '{print $5}')
 
-        cat << EOF > wg0.conf
+        cat << EOF > /etc/wireguard/wg0.conf
 [Interface]
 Address = $NET_INT_ADDR
 ListenPort = $LISTEN_PORT
