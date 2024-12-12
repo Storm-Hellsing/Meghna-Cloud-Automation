@@ -169,16 +169,34 @@ EOF
 
         echo "Enabling Wireguard Services..."
         
-        SERVICE_NAME="wg-quick@wg0"
-
         # Check if the service is enabled
-        if systemctl is-enabled --quiet $SERVICE_NAME; then
+        if systemctl is-enabled --quiet wg-quick@wg0; then
 
-            echo "The service $SERVICE_NAME is already enabled."
+            echo "The WireGuard service is already enabled."
 
         else
 
-            if systemctl enable $SERVICE_NAME; then
+            if systemctl enable wg-quick@wg0; then
+
+                echo "WireGuard service enabled successfully."
+
+            else
+
+                echo "Failed to enable the WireGuard service. Check status."
+                exit 1
+
+            fi
+
+        fi
+
+        # Check if the service is enabled
+        if systemctl is-enabled --quiet wg-quick@wg0; then
+
+            echo "The WireGuard service is already enabled."
+
+        else
+
+            if systemctl enable wg-quick@wg0; then
 
                 echo "WireGuard service enabled successfully."
 
@@ -192,11 +210,11 @@ EOF
         fi
 
         # Check if the service is active
-        if systemctl is-active --quiet $SERVICE_NAME; then
+        if systemctl is-active --quiet wg-quick@wg0; then
 
-            echo "The service $SERVICE_NAME is already active. Restarting the service..."
+            echo "The WireGuard service is already active. Restarting the service..."
 
-            if systemctl restart $SERVICE_NAME; then
+            if systemctl restart wg-quick@wg0; then
 
                 echo "WireGuard service restarted successfully."
 
@@ -209,9 +227,9 @@ EOF
 
         else
 
-            echo "The service $SERVICE_NAME is inactive. Starting the service..."
+            echo "The WireGuard service is inactive. Starting the service..."
 
-            if systemctl start $SERVICE_NAME; then
+            if systemctl start wg-quick@wg0; then
 
                 echo "WireGuard service started successfully."
 
