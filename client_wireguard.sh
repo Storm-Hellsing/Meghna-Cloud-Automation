@@ -74,6 +74,7 @@ else
                 CLIENT_PRIVATE_KEY=$(</etc/wireguard/clients/client${i}_privatekey)
                 CLIENT_PUBLIC_KEY=$(</etc/wireguard/clients/client${i}_publickey)
                 CLIENT_PRESHARED_KEY=$(</etc/wireguard/clients/client${i}_presharedkey)
+                SERVER_PUBLIC_KEY=$(</etc/wireguard/publickey) 
                 DNS_SERVER="8.8.8.8, 8.8.4.4, 1.1.1.1"
 
                 OCTETS[3]=$((OCTETS[3] + 1))
@@ -108,7 +109,7 @@ Address = $CLIENT_IP/32
 DNS = $DNS_SERVER
 
 [Peer]
-PublicKey = $(grep "PrivateKey" /etc/wireguard/wg0.conf | awk '{print $3}')
+PublicKey = $SERVER_PUBLIC_KEY
 PresharedKey = $CLIENT_PRESHARED_KEY
 Endpoint = $SERVER_PUBLIC_IP:$SERVER_LISTENING_PORT
 AllowedIPs = 0.0.0.0/0

@@ -90,8 +90,6 @@ EOF
 
     echo ""
 
-    cd /etc/wireguard/
-
     if [ -f /etc/wireguard/wg0.conf ]; then
 
         echo "Warning: wg0.conf already exists. Please inspect it before proceeding."
@@ -99,8 +97,8 @@ EOF
     else
 
         umask 077
-        wg genkey > privatekey
-        wg pubkey < privatekey > publickey
+        wg genkey > /etc/wireguard/privatekey
+        wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
 
         PRIVATE_KEY=$(<privatekey)
         PUBLIC_KEY=$(<publickey)
