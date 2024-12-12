@@ -143,9 +143,9 @@ EOF
 
         cat << EOF > /etc/wireguard/wg0.conf
 [Interface]
+PrivateKey = $PRIVATE_KEY
 Address = $NET_INT_ADDR
 ListenPort = $LISTEN_PORT
-PrivateKey = $PRIVATE_KEY
 DNS = $DNS_SERVER
 
 PostUp = iptables -A FORWARD -i wg0 -o $INTERFACE -j ACCEPT
