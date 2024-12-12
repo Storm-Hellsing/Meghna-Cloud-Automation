@@ -100,8 +100,8 @@ EOF
         wg genkey > /etc/wireguard/privatekey
         wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
 
-        PRIVATE_KEY=$(<privatekey)
-        PUBLIC_KEY=$(<publickey)
+        PRIVATE_KEY=$(</etc/wireguard/privatekey)
+        PUBLIC_KEY=$(</etc/wireguard/publickey)
         DNS_SERVER="8.8.8.8, 8.8.4.4, 1.1.1.1"
 
         while true; do
