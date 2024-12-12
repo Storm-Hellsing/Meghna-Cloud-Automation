@@ -140,6 +140,26 @@ EOF
             
         fi
 
+        # Check if the service is enabled
+        if systemctl is-enabled --quiet $SERVICE_NAME; then
+
+            echo "The service $SERVICE_NAME is already enabled."
+
+        else
+
+            if systemctl enable $SERVICE_NAME; then
+
+                echo "WireGuard service enabled successfully."
+
+            else
+
+                echo "Failed to enable the WireGuard service. Check status."
+                exit 1
+
+            fi
+
+        fi
+
         # Check if the service is active
         if systemctl is-active --quiet $SERVICE_NAME; then
 
